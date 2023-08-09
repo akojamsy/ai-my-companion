@@ -116,7 +116,7 @@ const CompanionForm = ({
           description: res.data.message,
         });
         router.refresh();
-        router.push("/");
+        // router.push("/");
       } else {
         // create new companion
         const res: any = await axios.post(`/api/companion`, values);
