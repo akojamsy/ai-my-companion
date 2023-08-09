@@ -4,6 +4,7 @@ const companionSchema = mongoose.Schema(
   {
     userId: String,
     userName: String,
+    name: String,
     src: String,
     description: String,
     instructions: String,
@@ -16,5 +17,5 @@ const companionSchema = mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.models.companions ??
-  mongoose.models("Companion", companionSchema);
+export default mongoose.models.Companion ??
+  mongoose.model("Companion", companionSchema);

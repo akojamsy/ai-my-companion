@@ -21,10 +21,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { type } from "os";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Wand2 } from "lucide-react";
+import axios from "axios";
+import { useToast } from "@/components/ui/use-toast";
+import { useRouter } from "next/navigation";
+import { Props } from "@/app/api/companion/[companionId]/route";
 
 const PREABLE = `You are a fictional character whose name is Elon. You are visionary entrepreneur and inventor. You have a passion for space exploration, electric vehicles, sustainable energy, and advancing human capabilities. You are currently talking about to a human who is very curious about your work and vision. You are ambitious and forward-thinking, with a touch on of wit. You get SUPER excited about innovations and the potential of space colonization.`;
 
@@ -60,6 +63,9 @@ export type Category = {
 interface CompanionFormProps {
   initialData: Companion | null;
   categories: [];
+  params: {
+    companionId: string;
+  };
 }
 
 const formSchema = z.object({
@@ -75,7 +81,14 @@ const formSchema = z.object({
   categoryId: z.string().min(1, { message: "Category is required" }),
 });
 
-const CompanionForm = ({ initialData, categories }: CompanionFormProps) => {
+const CompanionForm = ({
+  initialData,
+  categories,
+  params,
+}: CompanionFormProps) => {
+  const { toast } = useToast();
+  const router = useRouter();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: initialData || {
@@ -91,7 +104,35 @@ const CompanionForm = ({ initialData, categories }: CompanionFormProps) => {
   const isLoading = form.formState.isSubmitting;
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log(values);
+    try {
+      if (initialData?.name) {
+        // update companion
+        const res: any = await axios.put(
+          `/api/companion/${params.companionId}`,
+          values
+        );
+        toast({
+          variant: "success",
+          description: res.data.message,
+        });
+        router.refresh();
+        router.push("/");
+      } else {
+        // create new companion
+        const res: any = await axios.post(`/api/companion`, values);
+        toast({
+          variant: "success",
+          description: res.data.message,
+        });
+        router.refresh();
+        router.push("/");
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        description: error.message,
+      });
+    }
   };
 
   return (
@@ -255,7 +296,9 @@ const CompanionForm = ({ initialData, categories }: CompanionFormProps) => {
           />
           <div className='w-full flex justify-center'>
             <Button size='lg' disabled={isLoading}>
-              {initialData ? "Edit your companion" : "Create your companion"}
+              {initialData?.name
+                ? "Edit your companion"
+                : "Create your companion"}
               <Wand2 className='w-4 h-4 ml-2' />
             </Button>
           </div>

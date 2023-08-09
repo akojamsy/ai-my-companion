@@ -16,9 +16,24 @@ const CompanionPage = ({ params }: CompanionPageProps) => {
     fetcher
   );
 
-  return (
-    <CompanionForm initialData={data?.data} categories={data?.categories} />
-  );
+  const initialData = {
+    name: data?.companion?.name,
+    description: data?.companion?.description,
+    src: data?.companion?.src,
+    instructions: data?.companion?.instructions,
+    seed: data?.companion?.seed,
+    categoryId: data?.companion?.categoryId,
+  };
+
+  if (data?.companion || params.companionId === "new") {
+    return (
+      <CompanionForm
+        initialData={initialData}
+        categories={data?.categories}
+        params={params}
+      />
+    );
+  }
 };
 
 export default CompanionPage;
