@@ -1,6 +1,7 @@
 "use client";
 import useSWR from "swr";
 import CompanionForm from "./components/companion-form";
+import { RedirectToSignIn, redirectToSignIn, useUser } from "@clerk/nextjs";
 
 interface CompanionPageProps {
   params: {
@@ -16,6 +17,8 @@ const CompanionPage = ({ params }: CompanionPageProps) => {
     fetcher
   );
 
+  const { user } = useUser();
+
   const initialData = {
     name: data?.companion?.name,
     description: data?.companion?.description,
@@ -24,6 +27,10 @@ const CompanionPage = ({ params }: CompanionPageProps) => {
     seed: data?.companion?.seed,
     categoryId: data?.companion?.categoryId,
   };
+
+  if (!user?.id) {
+    return <RedirectToSignIn />;
+  }
 
   if (data?.companion || params.companionId === "new") {
     return (

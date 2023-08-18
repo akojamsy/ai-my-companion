@@ -11,8 +11,6 @@ export const POST = async (req: NextRequest) => {
     const user = await currentUser();
     const { src, description, seed, instructions, categoryId, name } = reqBody;
 
-    console.log(name);
-
     if (!user || !user.id || !user.firstName) {
       return NextResponse.json(
         { error: "Unauthorized!", success: false },
@@ -57,4 +55,25 @@ export const POST = async (req: NextRequest) => {
       { status: 501 }
     );
   }
+};
+
+export const GET = async (req: NextRequest) => {
+  const searchParams = req.nextUrl.searchParams;
+  let query: any = {};
+
+  if (searchParams.get("name") !== "null") {
+    query.name = searchParams.get("name");
+  }
+  if (searchParams.get("categoryId") !== "null") {
+    query.categoryId = searchParams.get("categoryId");
+  }
+
+  const companions = await Companion.find(query)
+    .sort({ createdAt: -1 })
+    .populate("messages");
+
+  return NextResponse.json(
+    { companions, message: "success", success: true },
+    { status: 200 }
+  );
 };

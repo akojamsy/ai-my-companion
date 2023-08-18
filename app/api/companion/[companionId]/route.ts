@@ -1,7 +1,7 @@
 import { connect } from "@/Dbconnection/dbconnect";
 import Category from "@/models/Category";
 import Companion from "@/models/Companion";
-import { currentUser } from "@clerk/nextjs";
+import { auth, currentUser } from "@clerk/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
 connect();
@@ -19,7 +19,9 @@ export const GET = async (request: NextRequest, { params }: Props) => {
     return NextResponse.json({ categories, success: true }, { status: 200 });
   }
 
-  const companion = await Companion.findById({ _id: id });
+  const user = await currentUser();
+
+  const companion = await Companion.findOne({ _id: id, userId: user?.id });
   if (companion) {
     return NextResponse.json(
       { companion, categories, success: true },
@@ -40,7 +42,6 @@ export const PUT = async (req: NextRequest, { params }: Props) => {
     const id = params?.companionId;
     const { src, description, seed, instructions, categoryId, name } = reqBody;
 
-    console.log(id);
     if (!id) {
       return NextResponse.json(
         { error: "Companion ID is required", success: false },
@@ -97,5 +98,29 @@ export const PUT = async (req: NextRequest, { params }: Props) => {
       { error: "Something went wrong, Try again.", success: false },
       { status: 501 }
     );
+  }
+};
+
+export const DELETE = async (
+  req: NextRequest,
+  { params }: { params: { companionId: string } }
+) => {
+  try {
+    const { userId } = auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const companion = await Companion.deleteOne({
+      _id: params?.companionId,
+      userId: userId,
+    });
+
+    return NextResponse.json(
+      { companion, message: "Deleted successfully", success: true },
+      { status: 200 }
+    );
+  } catch (error: any) {
+    console.log("DELETE COMPANION", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 };
