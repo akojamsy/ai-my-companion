@@ -7,10 +7,12 @@ import ChatHeader from "@/components/ui/chat-header";
 import { ChevronLeft } from "lucide-react";
 import React, { FormEvent, useState } from "react";
 import ChatForm from "@/components/ui/chat-form";
+import ChatMessages from "@/components/ui/chat-messages";
+import { ChatMessageProps } from "@/components/ui/chat-message";
 
 export interface ChatclientProps {
   companion: Companion & {
-    messages: [string];
+    messages: ChatMessageProps[];
     messageCount: number;
     userName: string;
     userId: string;
@@ -20,13 +22,15 @@ export interface ChatclientProps {
 
 const Chatclient = ({ companion }: ChatclientProps) => {
   const router = useRouter();
-  const [messages, setMessages] = useState<any[]>(companion?.messages);
+  const [messages, setMessages] = useState<ChatMessageProps[]>(
+    companion?.messages || []
+  );
 
   const { input, isLoading, handleSubmit, handleInputChange, setInput } =
     useCompletion({
       api: `/api/chat/${companion?._id}`,
       onFinish(prompt, completion) {
-        const systemMessage = {
+        const systemMessage: ChatMessageProps = {
           role: "system",
           content: completion,
         };
@@ -37,7 +41,7 @@ const Chatclient = ({ companion }: ChatclientProps) => {
     });
 
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
-    const userMessage = {
+    const userMessage: ChatMessageProps = {
       role: "user",
       content: input,
     };
@@ -50,7 +54,11 @@ const Chatclient = ({ companion }: ChatclientProps) => {
   return (
     <div className='flex flex-col h-full p-4 space-y-2'>
       <ChatHeader companion={companion} />
-      <div>Messages TODO</div>
+      <ChatMessages
+        messages={messages}
+        isLoading={isLoading}
+        companion={companion}
+      />
       <ChatForm
         isLoading={isLoading}
         input={input}
